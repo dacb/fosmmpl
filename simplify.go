@@ -20,6 +20,6 @@ func main() {
 	if err := json.Unmarshal(byteValue, &dat); err != nil {
         panic(err)
     }
-	fmt.Println(dat)
+	fmt.Println(dat["mmpl"])
 
 }

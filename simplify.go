@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -132,11 +133,13 @@ func main() {
 	if err := json.Unmarshal(byteValue, &mmpl); err != nil {
 		panic(err)
 	}
-	//mmpl.TorsionTypes = []TorsionType{}
-	//mmpl.Atoms = []Atom{}
-	//mmpl.Groups = []Group{}
-	//mmpl.Chains = []Chain{}
-	//mmpl.Molecules = []Molecule{}
+	mmpl.Atoms = []Atom{}
+	mmpl.Groups = []Group{}
+	mmpl.Chains = []Chain{}
+	mmpl.Molecules = []Molecule{}
+	mmpl.BondTypes = []BondType{}
+	mmpl.AngleTypes = []AngleType{}
+	mmpl.TorsionTypes = []TorsionType{}
 
 	//fmt.Println(dat["mmpl"].(map[string]interface{})["atom"])
 	//for key, _ := range dat["mmpl"].(map[string]interface{}) {
@@ -154,5 +157,12 @@ func main() {
 	//}
 
 	fmt.Println(mmpl)
+
+	json, err := json.MarshalIndent(mmpl, " ", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(json))
 
 }

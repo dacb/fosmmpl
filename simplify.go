@@ -7,8 +7,14 @@ import (
 	"os"
 )
 
-type Atoms struct {
-	Atoms []Atom `json:"atoms"`
+type Mmpl struct {
+	Atoms        []Atom        `json:"atoms"`
+	Groups       []Group       `json:"groups`
+	Chains       []Chain       `json:"chains"`
+	Molecules    []Molecule    `json:"molecules"`
+	BondTypes    []BondType    `json:"bonds"`
+	AngleTypes   []AngleType   `json:"angles"`
+	TorsionTypes []TorsionType `json:"torsions"`
 }
 
 type Atom struct {
@@ -17,10 +23,6 @@ type Atom struct {
 	Epsilon float64  `json:"epsilon"`
 	Names   []string `json:"names"`
 	Comment string   `json:"comment"`
-}
-
-type Groups struct {
-	Groups []Group `json:"groups"`
 }
 
 type Group struct {
@@ -83,12 +85,20 @@ type Molecule struct {
 	Bonds   []Bond   `json:"bonds"`
 }
 
+type BondTypes struct {
+	Bonds []BondType `json:"bonds"`
+}
+
 type BondType struct {
 	NameA   []string `json:"name_A"`
 	NameB   []string `json:"name_B"`
 	L       float64  `json:"l"`
 	K       float64  `json:"k"`
 	Comment string   `json:"comment"`
+}
+
+type AngleTypes struct {
+	Angles []AngleType `json:"angles"`
 }
 
 type AngleType struct {
@@ -98,6 +108,10 @@ type AngleType struct {
 	Theta   float64  `json:"theta"`
 	K       float64  `json:"k"`
 	Comment string   `json:"comment"`
+}
+
+type TorsionTypes struct {
+	Torsions []TorsionType `json:"torsions"`
 }
 
 type TorsionType struct {
@@ -125,6 +139,14 @@ func main() {
 	if err := json.Unmarshal(byteValue, &dat); err != nil {
 		panic(err)
 	}
-	fmt.Println(dat["mmpl"].(map[string]interface{})["atom"])
+
+	//fmt.Println(dat["mmpl"].(map[string]interface{})["atom"])
+	//for key, _ := range dat["mmpl"].(map[string]interface{}) {
+	//fmt.Println(key)
+	//}
+	//fmt.Println(dat["mmpl"].(map[string]interface{})["ap"])
+	for key, value := range dat["mmpl"].(map[string]interface{})["ap"].([]interface{}) {
+		fmt.Println(key, value)
+	}
 
 }

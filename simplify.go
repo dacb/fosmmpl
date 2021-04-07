@@ -116,6 +116,50 @@ type TorsionType struct {
 	Comment string  `json:"comment"`
 }
 
+func unpackBond(m map[string]interface{}) BondType {
+	l, err := strconv.ParseFloat(m["l"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	k, err := strconv.ParseFloat(m["k"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmt, ok := m["comment"].(string)
+	if !ok {
+		cmt = ""
+	}
+
+	bondType := BondType{
+		NameA: m["A"].(string), NameB: m["B"].(string),
+		L: l, K: k,
+		Comment: cmt}
+	return bondType
+}
+
+func unpackAngle(m map[string]interface{}) AngleType {
+	theta, err := strconv.ParseFloat(m["theta"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	k, err := strconv.ParseFloat(m["k"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmt, ok := m["comment"].(string)
+	if !ok {
+		cmt = ""
+	}
+
+	angleType := AngleType{
+		NameA: m["A"].(string), NameB: m["B"].(string),
+		NameC: m["C"].(string),
+		Theta: theta, K: k,
+		Comment: cmt}
+	return angleType
+}
 func unpackTorsion(m map[string]interface{}) TorsionType {
 	ttype, err := strconv.Atoi(m["type"].(string))
 	if err != nil {
@@ -177,14 +221,35 @@ func main() {
 	// extract out the mmpl object and prepare to loop over the lists
 	// within it
 	mmplx := dat["mmpl"].(map[string]interface{})
-	fmt.Printf("%T\n", mmplx)
+
+	// bond types
+	bonds := mmplx["bonds"]
+	fmt.Printf("%T\n", bonds)
+	for k, v := range bonds.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			bondType := unpackBond(mv)
+			mmpl.BondTypes = append(mmpl.BondTypes, bondType)
+		} else {
+			log.Fatal("should not happen", k, v)
+		}
+	}
+	// bond angle types
+	angles := mmplx["angles"]
+	fmt.Printf("%T\n", angles)
+	for k, v := range angles.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			angleType := unpackAngle(mv)
+			mmpl.AngleTypes = append(mmpl.AngleTypes, angleType)
+		} else {
+			log.Fatal("should not happen", k, v)
+		}
+	}
 	// torsion angle types
 	torsions := mmplx["torsions"]
 	fmt.Printf("%T\n", torsions)
 	for k, v := range torsions.([]interface{}) {
 		if mv, ok := v.(map[string]interface{}); ok {
 			torsionType := unpackTorsion(mv)
-			fmt.Println(torsionType)
 			mmpl.TorsionTypes = append(mmpl.TorsionTypes, torsionType)
 		} else {
 			log.Fatal("should not happen", k, v)

@@ -9,7 +9,7 @@ import (
 
 type Mmpl struct {
 	Atoms        []Atom        `json:"atoms"`
-	Groups       []Group       `json:"groups`
+	Groups       []Group       `json:"groups"`
 	Chains       []Chain       `json:"chains"`
 	Molecules    []Molecule    `json:"molecules"`
 	BondTypes    []BondType    `json:"bonds"`
@@ -79,51 +79,39 @@ type Molecules struct {
 }
 
 type Molecule struct {
-	Name    []string `json:"name"`
-	Comment string   `json:"comment"`
-	Chains  []Chain  `json:"chains"`
-	Bonds   []Bond   `json:"bonds"`
-}
-
-type BondTypes struct {
-	Bonds []BondType `json:"bonds"`
+	Name    string  `json:"name"`
+	Comment string  `json:"comment"`
+	Chains  []Chain `json:"chains"`
+	Bonds   []Bond  `json:"bonds"`
 }
 
 type BondType struct {
-	NameA   []string `json:"name_A"`
-	NameB   []string `json:"name_B"`
-	L       float64  `json:"l"`
-	K       float64  `json:"k"`
-	Comment string   `json:"comment"`
-}
-
-type AngleTypes struct {
-	Angles []AngleType `json:"angles"`
+	NameA   string  `json:"name_A"`
+	NameB   string  `json:"name_B"`
+	L       float64 `json:"l"`
+	K       float64 `json:"k"`
+	Comment string  `json:"comment"`
 }
 
 type AngleType struct {
-	NameA   []string `json:"name_A"`
-	NameB   []string `json:"name_B"`
-	NameC   []string `json:"name_C"`
-	Theta   float64  `json:"theta"`
-	K       float64  `json:"k"`
-	Comment string   `json:"comment"`
-}
-
-type TorsionTypes struct {
-	Torsions []TorsionType `json:"torsions"`
+	NameA   string  `json:"name_A"`
+	NameB   string  `json:"name_B"`
+	NameC   string  `json:"name_C"`
+	Theta   float64 `json:"theta"`
+	K       float64 `json:"k"`
+	Comment string  `json:"comment"`
 }
 
 type TorsionType struct {
-	NameA   []string `json:"name_A"`
-	NameB   []string `json:"name_B"`
-	NameC   []string `json:"name_C"`
-	NameD   []string `json:"name_D"`
-	Type    int      `json:"type"`
-	Phi     float64  `json:"phi"`
-	N       float64  `json:"n"`
-	K       float64  `json:"k"`
-	Comment string   `json:"comment"`
+	NameA   string  `json:"name_A"`
+	NameB   string  `json:"name_B"`
+	NameC   string  `json:"name_C"`
+	NameD   string  `json:"name_D"`
+	Type    int     `json:"type"`
+	Phi     float64 `json:"phi"`
+	N       float64 `json:"n"`
+	K       float64 `json:"k"`
+	Comment string  `json:"comment"`
 }
 
 func main() {
@@ -140,13 +128,31 @@ func main() {
 		panic(err)
 	}
 
+	var mmpl Mmpl
+	if err := json.Unmarshal(byteValue, &mmpl); err != nil {
+		panic(err)
+	}
+	//mmpl.TorsionTypes = []TorsionType{}
+	//mmpl.Atoms = []Atom{}
+	//mmpl.Groups = []Group{}
+	//mmpl.Chains = []Chain{}
+	//mmpl.Molecules = []Molecule{}
+
 	//fmt.Println(dat["mmpl"].(map[string]interface{})["atom"])
 	//for key, _ := range dat["mmpl"].(map[string]interface{}) {
 	//fmt.Println(key)
 	//}
 	//fmt.Println(dat["mmpl"].(map[string]interface{})["ap"])
-	for key, value := range dat["mmpl"].(map[string]interface{})["ap"].([]interface{}) {
-		fmt.Println(key, value)
-	}
+	//for i, value := range dat["mmpl"].(map[string]interface{})["torsions"].([]interface{}) {
+	//fmt.Println(key, value)
+	//fmt.Println(value)
+	//fmt.Println(value.(map[string]interface{})["A"])
+
+	//torsionType := TorsionType{"A", "B", "C", "D", i, 0, 0, 1., "nothing here"}
+	//fmt.Println(torsionType)
+	//mmpl.TorsionTypes = append(mmpl.TorsionTypes, torsionType)
+	//}
+
+	fmt.Println(mmpl)
 
 }

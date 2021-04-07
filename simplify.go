@@ -26,7 +26,7 @@ type Groups struct {
 type Group struct {
 	Name    string      `json:"name"`
 	Atoms   []GroupAtom `json:"atoms"`
-	Bonds   []GroupBond `json:"bonds"`
+	Bonds   []Bond      `json:"bonds"`
 	Comment string      `json:"comment"`
 }
 
@@ -37,10 +37,14 @@ type GroupAtom struct {
 	Comment string `json:"comment"`
 }
 
-type GroupBond struct {
-	AtomIndexA int    `json:"atom_index_A"`
-	AtomIndexB int    `json:"atom_index_B"`
-	Comment    string `json:"comment"`
+type Bond struct {
+	ChainIndexA int    `json:"chain_index_A"`
+	GroupIndexA int    `json:"group_index_A"`
+	AtomIndexA  int    `json:"atom_index_A"`
+	ChainIndexB int    `json:"chain_index_B"`
+	GroupIndexB int    `json:"group_index_B"`
+	AtomIndexB  int    `json:"atom_index_B"`
+	Comment     string `json:"comment"`
 }
 
 type Chains struct {
@@ -51,7 +55,7 @@ type Chain struct {
 	Name    string            `json:"name"`
 	Groups  []ChainGroup      `json:"groups"`
 	Names   []ChainGroupNames `json:"names"`
-	Bonds   []ChainGroupBonds `json:"bonds"`
+	Bonds   []Bond            `json:"bonds"`
 	Comment string            `json:"comment"`
 }
 
@@ -68,22 +72,15 @@ type ChainGroupNames struct {
 	Comment    string `json:"comment"`
 }
 
-type ChainGroupBonds struct {
-	GroupIndexA int    `json:"group_index_A"`
-	AtomIndexA  int    `json:"atom_index_A"`
-	GroupIndexB int    `json:"group_index_B"`
-	AtomIndexB  int    `json:"atom_index_B"`
-	Comment     string `json:"comment"`
-}
-
 type Molecules struct {
 	Molecules []Molecules `json:"molecules"`
 }
 
 type Molecule struct {
-	Name    []string        `json:"name"`
-	Comment string          `json:"comment"`
-	Chains  []MoleculeChain `json:"chain"`
+	Name    []string `json:"name"`
+	Comment string   `json:"comment"`
+	Chains  []Chain  `json:"chains"`
+	Bonds   []Bond   `json:"bonds"`
 }
 
 func main() {

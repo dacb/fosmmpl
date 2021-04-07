@@ -83,6 +83,35 @@ type Molecule struct {
 	Bonds   []Bond   `json:"bonds"`
 }
 
+type BondType struct {
+	NameA   []string `json:"name_A"`
+	NameB   []string `json:"name_B"`
+	L       float64  `json:"l"`
+	K       float64  `json:"k"`
+	Comment string   `json:"comment"`
+}
+
+type AngleType struct {
+	NameA   []string `json:"name_A"`
+	NameB   []string `json:"name_B"`
+	NameC   []string `json:"name_C"`
+	Theta   float64  `json:"theta"`
+	K       float64  `json:"k"`
+	Comment string   `json:"comment"`
+}
+
+type TorsionType struct {
+	NameA   []string `json:"name_A"`
+	NameB   []string `json:"name_B"`
+	NameC   []string `json:"name_C"`
+	NameD   []string `json:"name_D"`
+	Type    int      `json:"type"`
+	Phi     float64  `json:"phi"`
+	N       float64  `json:"n"`
+	K       float64  `json:"k"`
+	Comment string   `json:"comment"`
+}
+
 func main() {
 	jsonFile, err := os.Open("fosmmpl_complex.json")
 	if err != nil {

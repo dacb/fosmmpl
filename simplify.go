@@ -16,6 +16,7 @@ type Atom struct {
 	R       float64  `json:"r"`
 	Epsilon float64  `json:"epsilon"`
 	Names   []string `json:"names"`
+	Comment string   `json:"comment"`
 }
 
 type Groups struct {
@@ -23,20 +24,23 @@ type Groups struct {
 }
 
 type Group struct {
-	Name  string      `json:"name"`
-	Atoms []GroupAtom `json:"atoms"`
-	Bonds []GroupBond `json:"bonds"`
+	Name    string      `json:"name"`
+	Atoms   []GroupAtom `json:"atoms"`
+	Bonds   []GroupBond `json:"bonds"`
+	Comment string      `json:"comment"`
 }
 
 type GroupAtom struct {
-	Name  string `json:"name"`
-	Q     string `json:"q"`
-	Index int    `json:"index"`
+	Name    string `json:"name"`
+	Q       string `json:"q"`
+	Index   int    `json:"index"`
+	Comment string `json:"comment"`
 }
 
 type GroupBond struct {
-	AtomIndexA int `json:"atom_index_A"`
-	AtomIndexB int `json:"atom_index_B"`
+	AtomIndexA int    `json:"atom_index_A"`
+	AtomIndexB int    `json:"atom_index_B"`
+	Comment    string `json:"comment"`
 }
 
 type Chains struct {
@@ -44,28 +48,32 @@ type Chains struct {
 }
 
 type Chain struct {
-	Name   string            `json:"name"`
-	Groups []ChainGroup      `json:"groups"`
-	Names  []ChainGroupNames `json:"names"`
-	Bonds  []ChainGroupBonds `json:"bonds"`
+	Name    string            `json:"name"`
+	Groups  []ChainGroup      `json:"groups"`
+	Names   []ChainGroupNames `json:"names"`
+	Bonds   []ChainGroupBonds `json:"bonds"`
+	Comment string            `json:"comment"`
 }
 
 type ChainGroup struct {
-	Name  string `json:"name"`
-	Index int    `json:"index"`
+	Name    string `json:"name"`
+	Index   int    `json:"index"`
+	Comment string `json:"comment"`
 }
 
 type ChainGroupNames struct {
 	Name       string `json:"name"`
 	GroupIndex int    `json:"group_index"`
 	AtomIndex  int    `json:"atom_index"`
+	Comment    string `json:"comment"`
 }
 
 type ChainGroupBonds struct {
-	GroupIndexA int `json:"group_index_A"`
-	AtomIndexA  int `json:"atom_index_A"`
-	GroupIndexB int `json:"group_index_B"`
-	AtomIndexB  int `json:"atom_index_B"`
+	GroupIndexA int    `json:"group_index_A"`
+	AtomIndexA  int    `json:"atom_index_A"`
+	GroupIndexB int    `json:"group_index_B"`
+	AtomIndexB  int    `json:"atom_index_B"`
+	Comment     string `json:"comment"`
 }
 
 type Molecules struct {
@@ -73,11 +81,13 @@ type Molecules struct {
 }
 
 type Molecule struct {
-	Name []string `json:"name"`
+	Name    []string        `json:"name"`
+	Comment string          `json:"comment"`
+	Chains  []MoleculeChain `json:"chain"`
 }
 
 func main() {
-	jsonFile, err := os.Open("fosmmpl.json")
+	jsonFile, err := os.Open("fosmmpl_complex.json")
 	if err != nil {
 		fmt.Println(err)
 	}

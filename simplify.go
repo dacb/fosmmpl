@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 )
 
 type Mmpl struct {
@@ -110,9 +111,40 @@ type TorsionType struct {
 	NameD   string  `json:"name_D"`
 	Type    int     `json:"type"`
 	Phi     float64 `json:"phi"`
-	N       float64 `json:"n"`
+	N       int     `json:"n"`
 	K       float64 `json:"k"`
 	Comment string  `json:"comment"`
+}
+
+func unpackTorsion(m map[string]interface{}) TorsionType {
+	ttype, err := strconv.Atoi(m["type"].(string))
+	if err != nil {
+		log.Fatal(err)
+	}
+	n, err := strconv.Atoi(m["n"].(string))
+	if err != nil {
+		log.Fatal(err)
+	}
+	phi, err := strconv.ParseFloat(m["phi"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	k, err := strconv.ParseFloat(m["k"].(string), 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmt, ok := m["comment"].(string)
+	if !ok {
+		cmt = ""
+	}
+
+	torsionType := TorsionType{
+		NameA: m["A"].(string), NameB: m["B"].(string),
+		NameC: m["C"].(string), NameD: m["D"].(string),
+		Type: ttype, Phi: phi, N: n, K: k,
+		Comment: cmt}
+	return torsionType
 }
 
 func main() {
@@ -130,9 +162,6 @@ func main() {
 	}
 
 	var mmpl Mmpl
-	if err := json.Unmarshal(byteValue, &mmpl); err != nil {
-		panic(err)
-	}
 	mmpl.Atoms = []Atom{}
 	mmpl.Groups = []Group{}
 	mmpl.Chains = []Chain{}
@@ -140,23 +169,27 @@ func main() {
 	mmpl.BondTypes = []BondType{}
 	mmpl.AngleTypes = []AngleType{}
 	mmpl.TorsionTypes = []TorsionType{}
-
-	//fmt.Println(dat["mmpl"].(map[string]interface{})["atom"])
-	//for key, _ := range dat["mmpl"].(map[string]interface{}) {
-	//fmt.Println(key)
-	//}
-	//fmt.Println(dat["mmpl"].(map[string]interface{})["ap"])
-	//for i, value := range dat["mmpl"].(map[string]interface{})["torsions"].([]interface{}) {
-	//fmt.Println(key, value)
-	//fmt.Println(value)
-	//fmt.Println(value.(map[string]interface{})["A"])
-
-	//torsionType := TorsionType{"A", "B", "C", "D", i, 0, 0, 1., "nothing here"}
-	//fmt.Println(torsionType)
-	//mmpl.TorsionTypes = append(mmpl.TorsionTypes, torsionType)
+	// not yet
+	//if err := json.Unmarshal(byteValue, &mmpl); err != nil {
+	//panic(err)
 	//}
 
-	fmt.Println(mmpl)
+	// extract out the mmpl object and prepare to loop over the lists
+	// within it
+	mmplx := dat["mmpl"].(map[string]interface{})
+	fmt.Printf("%T\n", mmplx)
+	// torsion angle types
+	torsions := mmplx["torsions"]
+	fmt.Printf("%T\n", torsions)
+	for k, v := range torsions.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			torsionType := unpackTorsion(mv)
+			fmt.Println(torsionType)
+			mmpl.TorsionTypes = append(mmpl.TorsionTypes, torsionType)
+		} else {
+			log.Fatal("should not happen", k, v)
+		}
+	}
 
 	json, err := json.MarshalIndent(mmpl, " ", "  ")
 	if err != nil {

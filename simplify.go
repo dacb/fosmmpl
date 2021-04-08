@@ -1,4 +1,4 @@
-// Package simplify takes a wordy abstract representation of the MMPL
+// simplify takes a wordy abstract representation of the MMPL in json
 // and converts it to a more compact set of structures that map onto
 // a json structure for easy i/o in other settings.
 // This tool will only ever be run once to generate the compact representation.
@@ -34,7 +34,7 @@ type Atom struct {
 type Group struct {
 	Name    string      `json:"name"`
 	Atoms   []GroupAtom `json:"atoms"`
-	Bonds   []Bond      `json:"bonds"`
+	Bonds   []GroupBond `json:"bonds"`
 	Comment string      `json:"comment"`
 }
 
@@ -45,7 +45,21 @@ type GroupAtom struct {
 	Comment string  `json:"comment"`
 }
 
-type Bond struct {
+type GroupBond struct {
+	AtomIndexA int    `json:"atom_index_A"`
+	AtomIndexB int    `json:"atom_index_B"`
+	Comment    string `json:"comment"`
+}
+
+type ChainBond struct {
+	GroupIndexA int    `json:"group_index_A"`
+	AtomIndexA  int    `json:"atom_index_A"`
+	GroupIndexB int    `json:"group_index_B"`
+	AtomIndexB  int    `json:"atom_index_B"`
+	Comment     string `json:"comment"`
+}
+
+type MoleculeBond struct {
 	ChainIndexA int    `json:"chain_index_A"`
 	GroupIndexA int    `json:"group_index_A"`
 	AtomIndexA  int    `json:"atom_index_A"`
@@ -63,7 +77,7 @@ type Chain struct {
 	Name    string            `json:"name"`
 	Groups  []ChainGroup      `json:"groups"`
 	Names   []ChainGroupNames `json:"names"`
-	Bonds   []Bond            `json:"bonds"`
+	Bonds   []ChainBond       `json:"bonds"`
 	Comment string            `json:"comment"`
 }
 
@@ -85,10 +99,16 @@ type Molecules struct {
 }
 
 type Molecule struct {
-	Name    string  `json:"name"`
-	Comment string  `json:"comment"`
-	Chains  []Chain `json:"chains"`
-	Bonds   []Bond  `json:"bonds"`
+	Name    string          `json:"name"`
+	Comment string          `json:"comment"`
+	Chains  []MoleculeChain `json:"chains"`
+	Bonds   []MoleculeBond  `json:"bonds"`
+}
+
+type MoleculeChain struct {
+	Name    string `json:"name"`
+	Index   int    `json:"index"`
+	Comment string `json:"comment"`
 }
 
 type BondType struct {
@@ -159,15 +179,15 @@ func unpackGroup(m map[string]interface{}) Group {
 	if !ok {
 		log.Fatal("unable to find name for group")
 	}
-	fmt.Println(name)
 	cmt, ok := m["comment"].(string)
 	if !ok {
 		cmt = ""
 	}
 	atoms := []GroupAtom{}
 	alist, ok := m["atoms"].(map[string]interface{})["a"]
-	fmt.Printf("%T\n", alist)
-	fmt.Println(alist)
+	if !ok {
+		log.Fatal("unable to find list of atoms for group")
+	}
 	for _, v := range alist.([]interface{}) {
 		if mv, ok := v.(map[string]interface{}); ok {
 			mvname, ok := mv["name"].(string)
@@ -194,10 +214,230 @@ func unpackGroup(m map[string]interface{}) Group {
 			})
 		}
 	}
+	bonds := []GroupBond{}
+	blist, ok := m["bonds"].([]interface{})
+	//if !ok {
+	//log.Fatal("unable to find list of bonds for group")
+	//}
+	if len(blist) > 0 {
+		blist0 := blist[0].(map[string]interface{})
+		bs := blist0["b"].([]interface{})
+		//fmt.Printf("%T\n", bs)
+		for _, v := range bs {
+			mv := v.(map[string]interface{})
+			aia, err := strconv.Atoi(mv["atom_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			aib, err := strconv.Atoi(mv["atom_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			bcmt, ok := mv["comment"].(string)
+			if !ok {
+				bcmt = ""
+			}
+			bond := GroupBond{
+				AtomIndexA: aia,
+				AtomIndexB: aib,
+				Comment:    bcmt,
+			}
+			bonds = append(bonds, bond)
+		}
+	}
 	group := Group{Name: name,
 		Atoms:   atoms,
+		Bonds:   bonds,
 		Comment: cmt}
 	return group
+}
+
+func unpackChain(m map[string]interface{}) Chain {
+	name, ok := m["name"].(string)
+	if !ok {
+		log.Fatal("unable to find name for group")
+	}
+	cmt, ok := m["comment"].(string)
+	if !ok {
+		cmt = ""
+	}
+	groups := []ChainGroup{}
+	glist, ok := m["groups"].(map[string]interface{})["g"]
+	if !ok {
+		log.Fatal("unable to find list of groups for chain")
+	}
+	for _, v := range glist.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			mvname, ok := mv["name"].(string)
+			if !ok {
+				log.Fatal("in chain, unable to find name of group")
+			}
+			idx, err := strconv.Atoi(mv["idx"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			agcmt, ok := mv["comment"].(string)
+			if !ok {
+				agcmt = ""
+			}
+			groups = append(groups, ChainGroup{
+				Name:    mvname,
+				Index:   idx,
+				Comment: agcmt,
+			})
+		}
+	}
+	names := []ChainGroupNames{}
+	nlist, ok := m["names"].([]interface{})
+	if len(nlist) > 0 {
+		nlist0 := nlist[0].(map[string]interface{})
+		ns := nlist0["n"].([]interface{})
+		//fmt.Printf("%T\n", bs)
+		for _, v := range ns {
+			fmt.Println(v)
+		}
+	}
+
+	bonds := []ChainBond{}
+	blist, ok := m["bonds"].([]interface{})
+	//if !ok {
+	//log.Fatal("unable to find list of bonds for group")
+	//}
+	if len(blist) > 0 {
+		blist0 := blist[0].(map[string]interface{})
+		bs := blist0["b"].([]interface{})
+		//fmt.Printf("%T\n", bs)
+		for _, v := range bs {
+			mv := v.(map[string]interface{})
+			aia, err := strconv.Atoi(mv["atom_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			gia, err := strconv.Atoi(mv["group_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			aib, err := strconv.Atoi(mv["atom_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			gib, err := strconv.Atoi(mv["group_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			bcmt, ok := mv["comment"].(string)
+			if !ok {
+				bcmt = ""
+			}
+			bond := ChainBond{
+				AtomIndexA:  aia,
+				GroupIndexA: gia,
+				AtomIndexB:  aib,
+				GroupIndexB: gib,
+				Comment:     bcmt,
+			}
+			bonds = append(bonds, bond)
+		}
+	}
+	chain := Chain{Name: name,
+		Groups:  groups,
+		Names:   names,
+		Bonds:   bonds,
+		Comment: cmt}
+	return chain
+}
+
+func unpackMolecule(m map[string]interface{}) Molecule {
+	name, ok := m["name"].(string)
+	if !ok {
+		log.Fatal("unable to find name for group")
+	}
+	cmt, ok := m["comment"].(string)
+	if !ok {
+		cmt = ""
+	}
+	chains := []MoleculeChain{}
+	clist, ok := m["residues"].(map[string]interface{})["r"]
+	if !ok {
+		log.Fatal("unable to find list of atoms for group")
+	}
+	for _, v := range clist.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			mvname, ok := mv["name"].(string)
+			if !ok {
+				log.Fatal("in group, unable to find name of atom")
+			}
+			idx, err := strconv.Atoi(mv["idx"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			agcmt, ok := mv["comment"].(string)
+			if !ok {
+				agcmt = ""
+			}
+			chains = append(chains, MoleculeChain{
+				Name:    mvname,
+				Index:   idx,
+				Comment: agcmt,
+			})
+		}
+	}
+	bonds := []MoleculeBond{}
+	blist, ok := m["bonds"].([]interface{})
+	//if !ok {
+	//log.Fatal("unable to find list of bonds for group")
+	//}
+	if len(blist) > 0 {
+		blist0 := blist[0].(map[string]interface{})
+		bs := blist0["b"].([]interface{})
+		//fmt.Printf("%T\n", bs)
+		for _, v := range bs {
+			mv := v.(map[string]interface{})
+			aia, err := strconv.Atoi(mv["atom_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			gia, err := strconv.Atoi(mv["group_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			cia, err := strconv.Atoi(mv["chain_idx_A"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			aib, err := strconv.Atoi(mv["atom_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			gib, err := strconv.Atoi(mv["group_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			cib, err := strconv.Atoi(mv["chain_idx_B"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			bcmt, ok := mv["comment"].(string)
+			if !ok {
+				bcmt = ""
+			}
+			bond := MoleculeBond{
+				ChainIndexA: cia,
+				AtomIndexA:  aia,
+				GroupIndexA: gia,
+				ChainIndexB: cib,
+				AtomIndexB:  aib,
+				GroupIndexB: gib,
+				Comment:     bcmt,
+			}
+			bonds = append(bonds, bond)
+		}
+	}
+	molecule := Molecule{Name: name,
+		Chains:  chains,
+		Bonds:   bonds,
+		Comment: cmt}
+	return molecule
 }
 
 func unpackBond(m map[string]interface{}) BondType {
@@ -298,10 +538,6 @@ func main() {
 	mmpl.BondTypes = []BondType{}
 	mmpl.AngleTypes = []AngleType{}
 	mmpl.TorsionTypes = []TorsionType{}
-	// not yet
-	//if err := json.Unmarshal(byteValue, &mmpl); err != nil {
-	//panic(err)
-	//}
 
 	// extract out the mmpl object and prepare to loop over the lists
 	// within it
@@ -314,7 +550,7 @@ func main() {
 			atom := unpackAtom(mv)
 			mmpl.Atoms = append(mmpl.Atoms, atom)
 		} else {
-			log.Fatal("should not happen", k, v)
+			log.Fatal("atoms was not a list", k, v)
 		}
 	}
 	// groups
@@ -324,7 +560,27 @@ func main() {
 			group := unpackGroup(mv)
 			mmpl.Groups = append(mmpl.Groups, group)
 		} else {
-			log.Fatal("should not happen", k, v)
+			log.Fatal("groups was not a list", k, v)
+		}
+	}
+	// chains
+	chains := mmplx["chains"]
+	for k, v := range chains.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			chain := unpackChain(mv)
+			mmpl.Chains = append(mmpl.Chains, chain)
+		} else {
+			log.Fatal("chains was not a list", k, v)
+		}
+	}
+	// molecules
+	molecules := mmplx["molecules"]
+	for k, v := range molecules.([]interface{}) {
+		if mv, ok := v.(map[string]interface{}); ok {
+			molecule := unpackMolecule(mv)
+			mmpl.Molecules = append(mmpl.Molecules, molecule)
+		} else {
+			log.Fatal("molecules was not a list", k, v)
 		}
 	}
 
@@ -335,7 +591,7 @@ func main() {
 			bondType := unpackBond(mv)
 			mmpl.BondTypes = append(mmpl.BondTypes, bondType)
 		} else {
-			log.Fatal("should not happen", k, v)
+			log.Fatal("bond element was not a list", k, v)
 		}
 	}
 	// bond angle types
@@ -345,7 +601,7 @@ func main() {
 			angleType := unpackAngle(mv)
 			mmpl.AngleTypes = append(mmpl.AngleTypes, angleType)
 		} else {
-			log.Fatal("should not happen", k, v)
+			log.Fatal("angle element was not a list", k, v)
 		}
 	}
 	// torsion angle types
@@ -355,13 +611,13 @@ func main() {
 			torsionType := unpackTorsion(mv)
 			mmpl.TorsionTypes = append(mmpl.TorsionTypes, torsionType)
 		} else {
-			log.Fatal("should not happen", k, v)
+			log.Fatal("torsion element was not a list", k, v)
 		}
 	}
 
 	//log.Fatal("nuff")
 
-	json, err := json.MarshalIndent(mmpl.Groups, " ", "  ")
+	json, err := json.MarshalIndent(mmpl, " ", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}

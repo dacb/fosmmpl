@@ -74,11 +74,11 @@ type Chains struct {
 }
 
 type Chain struct {
-	Name    string            `json:"name"`
-	Groups  []ChainGroup      `json:"groups"`
-	Names   []ChainGroupNames `json:"names"`
-	Bonds   []ChainBond       `json:"bonds"`
-	Comment string            `json:"comment"`
+	Name    string           `json:"name"`
+	Groups  []ChainGroup     `json:"groups"`
+	Names   []ChainGroupName `json:"names"`
+	Bonds   []ChainBond      `json:"bonds"`
+	Comment string           `json:"comment"`
 }
 
 type ChainGroup struct {
@@ -87,7 +87,7 @@ type ChainGroup struct {
 	Comment string `json:"comment"`
 }
 
-type ChainGroupNames struct {
+type ChainGroupName struct {
 	Name       string `json:"name"`
 	GroupIndex int    `json:"group_index"`
 	AtomIndex  int    `json:"atom_index"`
@@ -287,14 +287,35 @@ func unpackChain(m map[string]interface{}) Chain {
 			})
 		}
 	}
-	names := []ChainGroupNames{}
-	nlist, ok := m["names"].([]interface{})
-	if len(nlist) > 0 {
-		nlist0 := nlist[0].(map[string]interface{})
-		ns := nlist0["n"].([]interface{})
-		//fmt.Printf("%T\n", bs)
-		for _, v := range ns {
-			fmt.Println(v)
+	names := []ChainGroupName{}
+	nlist, ok := m["names"].(map[string]interface{})
+	if !ok {
+		log.Println("chain with no names:", name)
+	} else {
+		nlist, ok := nlist["n"]
+		if !ok {
+			log.Fatal("found names array but no n array, giving up parsing")
+		}
+		for _, v := range nlist.([]interface{}) {
+			mv := v.(map[string]interface{})
+			mvname, ok := mv["name"].(string)
+			if !ok {
+				log.Fatal("unable to find name for chain atom")
+			}
+			atm_idx, err := strconv.Atoi(mv["group_idx"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			grp_idx, err := strconv.Atoi(mv["atom_idx"].(string))
+			if err != nil {
+				log.Fatal(err)
+			}
+			nameo := ChainGroupName{
+				Name:       mvname,
+				AtomIndex:  atm_idx,
+				GroupIndex: grp_idx,
+			}
+			names = append(names, nameo)
 		}
 	}
 
@@ -615,7 +636,7 @@ func main() {
 		}
 	}
 
-	//log.Fatal("nuff")
+	log.Fatal("nuff")
 
 	json, err := json.MarshalIndent(mmpl, " ", "  ")
 	if err != nil {

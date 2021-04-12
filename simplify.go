@@ -548,7 +548,7 @@ func main() {
 
 	var dat map[string]interface{}
 	if err := json.Unmarshal(byteValue, &dat); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	var mmpl MMPL
@@ -636,13 +636,15 @@ func main() {
 		}
 	}
 
-	log.Fatal("nuff")
-
 	json, err := json.MarshalIndent(mmpl, " ", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(json))
+	//fmt.Println(string(json))
 
+	err = ioutil.WriteFile("fosmmpl.json", json, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
